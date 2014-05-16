@@ -154,3 +154,11 @@ When using a leadership selector it's worth noting the behaviour in the event of
 In the event that our connection becomes suspended or lost we should cease to expect that we're the leader. The remaining nodes, however, won't recognise the absence of the leader up until `curator.framework/curator-framework`'s session timeout, as specified with the `:session-timeout-millis` option. By default this is set to 40 seconds, so we'll wait 40 seconds for the leader to retain its session. Once this timeout expires the remaining nodes will hold another election.
 
 Having long session timeouts ensures we don't cycle very quickly in the event of intermittent connectivity problems, but comes at the expense of how quickly we can elect a new leader.
+
+## License
+
+Copyright © 2014 Paul Ingles
+
+Distributed under the Eclipse Public License either version 1.0 or (at
+your option) any later version.
+
