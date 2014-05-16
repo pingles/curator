@@ -1,7 +1,7 @@
 (ns ^{:doc "Namespace for service discovery"} curator.discovery
     (:require [clojure.edn :as edn])
-    (:import [org.apache.curator.x.discovery ServiceDiscovery ServiceDiscoveryBuilder ServiceInstance ServiceType UriSpec ProviderStrategy DownInstancePolicy ServiceProvider]
-             [org.apache.curator.x.discovery.details InstanceSerializer JsonInstanceSerializer]
+    (:import [org.apache.curator.x.discovery ServiceDiscovery ServiceDiscoveryBuilder ServiceInstance ServiceType UriSpec ProviderStrategy DownInstancePolicy ServiceProvider ServiceCache]
+             [org.apache.curator.x.discovery.details InstanceSerializer JsonInstanceSerializer InstanceProvider]
              [org.apache.curator.x.discovery.strategies RandomStrategy RoundRobinStrategy StickyStrategy]
              [java.io ByteArrayInputStream InputStreamReader PushbackReader]
              [java.util.concurrent TimeUnit]))
@@ -31,7 +31,7 @@
    port: 1234
    payload is serialized using json, only supports strings for now"
   [name uri-spec port & {:keys [id address ssl-port service-type payload]}]
-  {:pre [(string? payload)]}
+  {:pre [(or (nil? payload) (string? payload))]}
   (let [service-types {:dynamic   ServiceType/DYNAMIC
                        :static    ServiceType/STATIC
                        :permanent ServiceType/PERMANENT}]
@@ -109,12 +109,25 @@
         (.providerStrategy strategy))
       (.build)))
 
-(defn instances
-  "Returns instances registered for service named s."
-  [^ServiceDiscovery service-discovery s]
-  (.queryForInstances service-discovery s))
+(defn service-cache
+  "Creates a service cache (rather than reading ZooKeeper each time) for
+   the service named s"
+  [service-discovery s]
+  (-> (.serviceCacheBuilder service-discovery)
+      ( .name s)
+      (.build)))
 
-(defn instance
-  "Returns a service instance using the provider's selection policy"
-  [^ServiceProvider service-provider]
-  (.getInstance service-provider))
+(defn note-error
+  "Clients should use this to indicate a problem when trying to
+   connect to a service instance. The instance may be marked as down
+   depending on the service provider's down instance policy."
+  [^ServiceProvider service-provider ^ServiceInstance instance]
+  (.noteError service-provider instance))
+
+(defmulti instances (fn [x & args] (.getClass x)))
+(defmethod instances ServiceDiscovery [sd s] (.queryForInstances sd s))
+(defmethod instances ServiceCache [sc] (.getInstances sc))
+
+(defmulti instance (fn [x & args] (.getClass x)))
+(defmethod instance ServiceProvider [provider] (.getInstance provider))
+(defmethod instance ServiceCache [cache ^ProviderStrategy strategy] (.getInstance strategy cache))

@@ -1,4 +1,4 @@
-(defproject curator "0.0.1"
+(defproject curator "0.0.2-SNAPSHOT"
   :description "Clojurified Apache Curator"
   :url "https://github.com/pingles/curator"
   :license {:name "Eclipse Public License"

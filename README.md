@@ -47,23 +47,38 @@ This library aims to make it more pleasant to work with Apache Curator in a Cloj
 (.start discovery)
 
 ;; now we can see which services are registered
-(services sd)
+(services discovery)
 ;; ["some-service"]
 
 ;; and their registered instances
 (instances discovery service-name)
-;; [#<ServiceInstance ServiceInstance{name='service-name', id='d859d052-0df0-40aa-925e-358154953a19', address='192.168.1.241', port=1234, sslPort=null, payload=testing 123, registrationTimeUTC=1400195776978, serviceType=DYNAMIC, uriSpec=org.apache.curator.x.discovery.UriSpec@6c2ac0dc}>]
+;; [#<ServiceInstance ServiceInstance{name='some-service, id='d859d052-0df0-40aa-925e-358154953a19', address='192.168.1.241', port=1234, sslPort=null, payload=testing 123, registrationTimeUTC=1400195776978, serviceType=DYNAMIC, uriSpec=org.apache.curator.x.discovery.UriSpec@6c2ac0dc}>]
+
+(def select-strategy (round-robin-strategy))
 
 ;; we can also use the service-provider to help provide
 ;; access to an instance using different strategies: random, round-robin and sticky
-(def p (service-provider sd "some-service" :strategy (round-robin-strategy)))
+(def p (service-provider discovery "some-service" :strategy select-strategy))
 (.start p)
 
 (instance p)
 ;; #<ServiceInstance ServiceInstance{name='service-name', id='d859d052-0df0-40aa-925e-358154953a19', address='192.168.1.241', port=1234, sslPort=null, payload=testing 123, registrationTimeUTC=1400195776978, serviceType=DYNAMIC, uriSpec=org.apache.curator.x.discovery.UriSpec@6c2ac0dc}>
 
+;; Apache Curator also provides a service cache that can be used to avoid
+;; retrieving details from ZooKeeper each time. Instead, it'll watch for updates
+;; and keep data in-process
+(def sc (service-cache discovery "some-service"))
+(.start sc)
+
+;; we can use instances to retrieve all instances from the cache
+(instances sc)
+
+;; or we can use a strategy to determine how we pick a single instance
+(instance sc select-strategy)
+
 ;; we should close everything we've started when we're done
 (.close p)
-(.close sd)
+(.close sc)
+(.close discovery)
 (.close client)
 ```
