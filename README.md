@@ -23,7 +23,7 @@ This library aims to make it more pleasant to work with Apache Curator in a Cloj
 ```clojure
 (ns myservice
   (:require [curator.framework :refer (curator-framework)]
-            [curator.discovery :refer (service-discovery service-instance service-provider instance instances services)]))
+            [curator.discovery :refer (service-discovery service-instance service-provider instance instances services note-error)]))
 
 ;; services (and their instances) are registered by name
 (def service-name "some-service")
@@ -61,8 +61,15 @@ This library aims to make it more pleasant to work with Apache Curator in a Cloj
 (def p (service-provider discovery "some-service" :strategy select-strategy))
 (.start p)
 
-(instance p)
+;; lets pick the instance according to the strategy
+(def selected-instance (instance p))
 ;; #<ServiceInstance ServiceInstance{name='service-name', id='d859d052-0df0-40aa-925e-358154953a19', address='192.168.1.241', port=1234, sslPort=null, payload=testing 123, registrationTimeUTC=1400195776978, serviceType=DYNAMIC, uriSpec=org.apache.curator.x.discovery.UriSpec@6c2ac0dc}>
+
+;; if we have problems connecting to the specified instance we
+;; should notify the provider so it may be removed.
+(note-error p selected-instance)
+
+
 
 ;; Apache Curator also provides a service cache that can be used to avoid
 ;; retrieving details from ZooKeeper each time. Instead, it'll watch for updates
