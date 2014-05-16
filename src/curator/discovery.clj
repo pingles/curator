@@ -1,10 +1,10 @@
 (ns ^{:doc "Namespace for service discovery"} curator.discovery
-    (:require [clojure.edn :as edn])
+    (:require [clojure.edn :as edn]
+              [curator.framework :refer (time-units)])
     (:import [org.apache.curator.x.discovery ServiceDiscovery ServiceDiscoveryBuilder ServiceInstance ServiceType UriSpec ProviderStrategy DownInstancePolicy ServiceProvider ServiceCache]
              [org.apache.curator.x.discovery.details InstanceSerializer JsonInstanceSerializer InstanceProvider]
              [org.apache.curator.x.discovery.strategies RandomStrategy RoundRobinStrategy StickyStrategy]
-             [java.io ByteArrayInputStream InputStreamReader PushbackReader]
-             [java.util.concurrent TimeUnit]))
+             [java.io ByteArrayInputStream InputStreamReader PushbackReader]))
 
 (defmacro dotonn [x & forms]
   (let [gx (gensym)]
@@ -84,13 +84,6 @@
   [^ProviderStrategy strategy]
   (StickyStrategy. strategy))
 
-(def time-units {:hours        TimeUnit/HOURS
-                 :milliseconds TimeUnit/MILLISECONDS
-                 :seconds      TimeUnit/SECONDS
-                 :minutes      TimeUnit/MINUTES
-                 :days         TimeUnit/DAYS
-                 :microseconds TimeUnit/MICROSECONDS
-                 :nanoseconds  TimeUnit/NANOSECONDS})
 
 (defn down-instance-policy
   ([] (down-instance-policy 30 :seconds 2))

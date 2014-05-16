@@ -88,10 +88,13 @@ Leadership elections can be useful when you need to have multiple instances of a
 
 Before some task is started a leader election will be performed- participating network nodes are unaware of which node will be leader but a single node will receive a callback to say they have been elected leader. After the election all other nodes recognise a single node as the leader.
 
+### Leader Selector Model
+Curator's Leader Selector provides for a callback to be made when the current process is made leader. This function should execute the duties of the leader and only return if and when the leader chooses to secede leadership, it will only be called when the process becomes leader.
+
 ```clojure
 (ns myservice
   (:require [curator.framework :refer (curator-framework)]
-            [curator.leader :refer (leader-selector)]))
+            [curator.leader :refer (leader-selector interrupt-leadership participants)]))
 
 ;; first, create the curator client
 (def c (curator-framework "localhost:2181"))
@@ -102,10 +105,17 @@ Before some task is started a leader election will be performed- participating n
 ;; the leader.
 ;; this function needs to block whilst it acts as leader; once it returns
 ;; another election is performed and (potentially) a new leader elected.
+(defn became-leader [curator-framework participant-id]
+  (println "Became leader:" participant-id)
+  (Thread/sleep (* 20 1000)))
+
+;; we can also provide a function that will be called when we're going
+;; to lose leadership because of a connection state change.
+(defn losing-leadership [curator-framework new-state participant-id]
+  (println "Losing leadership:" participant-id ", state:" new-state))
+
 (def selector (let [zk-path "/pingles/curator/myservice-leader"]
-                (leader-selector c zk-path (fn [curator-framework participant-id]
-                                             (println "Became leader:" participant-id)
-                                             (Thread/sleep (* 20 1000))))))
+                (leader-selector c zk-path became-leader :losingfn losing-leadership)))
 
 ;; we can start the selector, every 20s it'll print that we became leader
 (.start selector)
