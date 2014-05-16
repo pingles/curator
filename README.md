@@ -17,6 +17,11 @@ At a lower-level Apache Curator also provides implementations of:
 
 This library aims to make it more pleasant to work with Apache Curator in a Clojure way.
 
+## Example Application
+A (work-in-progress) dummy application is being produced that uses the library to show how one might use the recipes for building nicely behaving distributed systems.
+
+* [https://github.com/pingles/curator-example](https://github.com/pingles/curator-example)
+
 # Examples
 ## Service Discovery
 
