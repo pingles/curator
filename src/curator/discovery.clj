@@ -1,8 +1,10 @@
 (ns ^{:doc "Namespace for service discovery"} curator.discovery
     (:require [clojure.edn :as edn])
-    (:import [org.apache.curator.x.discovery ServiceDiscoveryBuilder ServiceInstance ServiceType UriSpec]
+    (:import [org.apache.curator.x.discovery ServiceDiscovery ServiceDiscoveryBuilder ServiceInstance ServiceType UriSpec ProviderStrategy DownInstancePolicy ServiceProvider]
              [org.apache.curator.x.discovery.details InstanceSerializer JsonInstanceSerializer]
-             [java.io ByteArrayInputStream InputStreamReader PushbackReader]))
+             [org.apache.curator.x.discovery.strategies RandomStrategy RoundRobinStrategy StickyStrategy]
+             [java.io ByteArrayInputStream InputStreamReader PushbackReader]
+             [java.util.concurrent TimeUnit]))
 
 (defmacro dotonn [x & forms]
   (let [gx (gensym)]
@@ -51,11 +53,12 @@
   (JsonInstanceSerializer. String))
 
 (defn service-discovery
-  [curator-framework service-instance & {:keys [base-path serializer]
-                                         :or   {base-path  "/foo"
-                                                serializer (json-serializer)}}]
+  [curator-framework service-instance & {:keys [base-path serializer payload-class]
+                                         :or   {base-path     "/foo"
+                                                payload-class String
+                                                serializer    (json-serializer)}}]
   {:pre [(.startsWith base-path "/")]}
-  (-> (dotonn (ServiceDiscoveryBuilder/builder ServicePayload)
+  (-> (dotonn (ServiceDiscoveryBuilder/builder payload-class)
               (.client curator-framework)
               (.basePath base-path)
               (.serializer (json-serializer))
@@ -74,7 +77,51 @@
   [service-discovery]
   (.queryForNames service-discovery))
 
+
+
+(defn random-strategy
+  []
+  (RandomStrategy. ))
+
+(defn round-robin-strategy
+  []
+  (RoundRobinStrategy. ))
+
+(defn sticky-strategy
+  [^ProviderStrategy strategy]
+  (StickyStrategy. strategy))
+
+(def time-units {:hours        TimeUnit/HOURS
+                 :milliseconds TimeUnit/MILLISECONDS
+                 :seconds      TimeUnit/SECONDS
+                 :minutes      TimeUnit/MINUTES
+                 :days         TimeUnit/DAYS
+                 :microseconds TimeUnit/MICROSECONDS
+                 :nanoseconds  TimeUnit/NANOSECONDS})
+
+(defn down-instance-policy
+  ([] (down-instance-policy 30 :seconds 2))
+  ([timeout timeout-unit error-threshold]
+     {:pre [(some time-units [timeout-unit])]}
+     (DownInstancePolicy. timeout (time-units timeout-unit) error-threshold)))
+
+(defn service-provider
+  "Creates a service provider for a named service s."
+  [service-discovery s & {:keys [strategy down-instance-policy]
+                          :or   {strategy             (random-strategy)
+                                 down-instance-policy (down-instance-policy)}}]
+  (-> (doto (.serviceProviderBuilder service-discovery)
+        (.serviceName s)
+        (.downInstancePolicy down-instance-policy)
+        (.providerStrategy strategy))
+      (.build)))
+
 (defn instances
   "Returns instances registered for service named s."
-  [service-discovery s]
+  [^ServiceDiscovery service-discovery s]
   (.queryForInstances service-discovery s))
+
+(defn instance
+  "Returns a service instance using the provider's selection policy"
+  [^ServiceProvider service-provider]
+  (.getInstance service-provider))

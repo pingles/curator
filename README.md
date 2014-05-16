@@ -40,4 +40,13 @@ Clojure library to interface with [Apache Curator](http://curator.apache.org/): 
 ;; and their registered instances
 (instances discovery service-name)
 ;; [#<ServiceInstance ServiceInstance{name='service-name', id='d859d052-0df0-40aa-925e-358154953a19', address='192.168.1.241', port=1234, sslPort=null, payload=testing 123, registrationTimeUTC=1400195776978, serviceType=DYNAMIC, uriSpec=org.apache.curator.x.discovery.UriSpec@6c2ac0dc}>]
+
+;; we can also use the service-provider to help provide
+;; access to an instance using different strategies: random, round-robin and sticky
+(def p (service-provider sd "some-service" :strategy (round-robin-strategy)))
+
+(instance p)
+;; #<ServiceInstance ServiceInstance{name='service-name', id='d859d052-0df0-40aa-925e-358154953a19', address='192.168.1.241', port=1234, sslPort=null, payload=testing 123, registrationTimeUTC=1400195776978, serviceType=DYNAMIC, uriSpec=org.apache.curator.x.discovery.UriSpec@6c2ac0dc}>
+
+
 ```
