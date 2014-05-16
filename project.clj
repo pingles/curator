@@ -9,4 +9,6 @@
                  [org.apache.curator/curator-x-discovery "2.4.2"]]
   :profiles {:dev {:dependencies [[org.slf4j/log4j-over-slf4j "1.6.4"]
                                   [org.slf4j/slf4j-simple "1.6.4"]]
-                   :exclusions [org.slf4j/slf4j-log4j12]}})
+                   :exclusions [org.slf4j/slf4j-log4j12]}}
+  :scm {:name "git"
+        :url "https://github.com/pingles/curator"})
