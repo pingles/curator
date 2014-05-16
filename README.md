@@ -10,7 +10,7 @@ Clojure library to interface with [Apache Curator](http://curator.apache.org/): 
 ```clojure
 (ns myservice
   (:require [curator.framework :refer (curator-framework)]
-            [curator.discovery :refer (service-discovery service-instance start instances services)]))
+            [curator.discovery :refer (service-discovery service-instance service-provider instance instances services)]))
 
 ;; services (and their instances) are registered by name
 (def service-name "some-service")
@@ -26,12 +26,12 @@ Clojure library to interface with [Apache Curator](http://curator.apache.org/): 
 ;; now we create the curator-framework client, connecting to
 ;; our local quorum                                
 (def client (curator-framework "localhost:2181"))
-(start client)
+(.start client)
 
 ;; next we create our service discovery, which uses the client
 ;; in the background to register our service instance
 (def discovery (service-discovery client instance :base-path "/foo"))
-(start discovery)
+(.start discovery)
 
 ;; now we can see which services are registered
 (services sd)
@@ -44,9 +44,13 @@ Clojure library to interface with [Apache Curator](http://curator.apache.org/): 
 ;; we can also use the service-provider to help provide
 ;; access to an instance using different strategies: random, round-robin and sticky
 (def p (service-provider sd "some-service" :strategy (round-robin-strategy)))
+(.start p)
 
 (instance p)
 ;; #<ServiceInstance ServiceInstance{name='service-name', id='d859d052-0df0-40aa-925e-358154953a19', address='192.168.1.241', port=1234, sslPort=null, payload=testing 123, registrationTimeUTC=1400195776978, serviceType=DYNAMIC, uriSpec=org.apache.curator.x.discovery.UriSpec@6c2ac0dc}>
 
-
+;; we should close everything we've started when we're done
+(.close p)
+(.close sd)
+(.close client)
 ```

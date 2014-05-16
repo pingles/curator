@@ -19,14 +19,8 @@
         (.namespace namespace))
       (.build)))
 
-(defn start [^CuratorFramework curator-framework]
-  (.start curator-framework))
-
 (defn state [^CuratorFramework curator-framework]
   (let [states {CuratorFrameworkState/STOPPED :stopped
                 CuratorFrameworkState/LATENT  :latent
                 CuratorFrameworkState/STARTED :started}]
     (states (.getState curator-framework))))
-
-(defn close [^CuratorFramework curator-framework]
-  (.close curator-framework))

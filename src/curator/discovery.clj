@@ -65,13 +65,6 @@
               (.thisInstance service-instance))
       (.build)))
 
-(defn start [service-discovery]
-  (.start service-discovery))
-
-(defn close [service-discovery]
-  (.close service-discovery))
-
-
 (defn services
   "Returns the names of the services registered."
   [service-discovery]
