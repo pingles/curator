@@ -5,7 +5,20 @@ Clojure library to interface with [Apache Curator](http://curator.apache.org/): 
 
 ![latest curator version](https://clojars.org/curator/latest-version.svg)
 
-# Service Discovery
+Curator provides some ZooKeeper-implemented recipes that are extremely useful when building distributed systems.
+
+* Service Discovery. This helps services find each other at runtime, services can register and unregister as they become available. 
+* Leader Election. This enables a collection of processes to elect a single process as the leader, typically for one process to organise/coordinate the others.
+
+At a lower-level Apache Curator also provides implementations of:
+
+* Distributed Locks, Semaphores and Barriers.
+* Distributed Counters
+
+This library aims to make it more pleasant to work with Apache Curator in a Clojure way.
+
+# Examples
+## Service Discovery
 
 ```clojure
 (ns myservice
