@@ -1,6 +1,6 @@
 (ns curator.leader
   (:require [curator.framework :refer (time-units)])
-  (:import [org.apache.curator.framework.recipes.leader LeaderSelector LeaderSelectorListener CancelLeadershipException LeaderLatch]
+  (:import [org.apache.curator.framework.recipes.leader LeaderSelector LeaderSelectorListener CancelLeadershipException]
            [org.apache.curator.framework.state ConnectionState]
            [java.util UUID]))
 
@@ -16,7 +16,7 @@
              (finally
                (throw (CancelLeadershipException.))))))))
 
-(defn leader-selector
+(defn ^LeaderSelector leader-selector
   "Creates a Leader Selector.
    path: The path in ZooKeeper for storing this leadership group
    leaderfn: Function that will be called when the current process becomes
@@ -25,9 +25,9 @@
    losingfn: Optional function that will be called when the connection state
       changes indicating we're going to lose leadership.
    participant-id: Uniquely identifies this participant. Defaults to UUID/randomUUID"
-  [curator-framework path leaderfn & {:keys [participant-id losingfn]
-                                      :or   {participant-id (str (UUID/randomUUID))
-                                             losingfn       (constantly nil)}}]
+  [curator-framework ^String path leaderfn & {:keys [participant-id losingfn]
+                                              :or   {participant-id (str (UUID/randomUUID))
+                                                     losingfn       (constantly nil)}}]
   {:pre [(.startsWith path "/") (not (nil? participant-id))]}
   (doto (LeaderSelector. curator-framework path (listener leaderfn losingfn participant-id))
     (.setId participant-id)
@@ -35,17 +35,17 @@
 
 (defn interrupt-leadership
   "Attempt to cancel current leadership if we currently have leadership"
-  [leader-selector]
+  [^LeaderSelector leader-selector]
   (.interruptLeadership leader-selector))
 
 (defn leader?
-  [leader-selector]
+  [^LeaderSelector leader-selector]
   (.hasLeadership leader-selector))
 
 (defn leader
-  [leader-selector]
+  [^LeaderSelector leader-selector]
   (.getLeader leader-selector))
 
 (defn participants
-  [leader-selector]
+  [^LeaderSelector leader-selector]
   (.getParticipants leader-selector))

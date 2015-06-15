@@ -7,7 +7,7 @@
 (defn exponential-retry [sleep-millis num-retries]
   (ExponentialBackoffRetry. sleep-millis num-retries))
 
-(defn curator-framework
+(defn ^CuratorFramework curator-framework
   [connect-string & {:keys [retry-policy connect-timeout-millis session-timeout-millis namespace]
                      :or   {retry-policy           (exponential-retry 1000 10)
                             connect-timeout-millis 500

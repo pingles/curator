@@ -25,7 +25,7 @@
   [s]
   (UriSpec. s))
 
-(defn service-instance
+(defn ^ServiceInstance service-instance
   "name: my-service
    uri-spec: \"{scheme}://foo.com:{port}\"
    port: 1234
@@ -46,18 +46,18 @@
                 (.serviceType (service-types service-type)))
         (.build))))
 
-(defn uri [service-instance]
+(defn uri [^ServiceInstance service-instance]
   (.buildUriSpec service-instance))
 
 (defn json-serializer []
   (JsonInstanceSerializer. String))
 
-(defn service-discovery
+(defn ^ServiceDiscovery service-discovery
   [curator-framework service-instance & {:keys [base-path serializer payload-class]
                                          :or   {base-path     "/foo"
                                                 payload-class String
                                                 serializer    (json-serializer)}}]
-  {:pre [(.startsWith base-path "/")]}
+  {:pre [(.startsWith ^String base-path "/")]}
   (-> (dotonn (ServiceDiscoveryBuilder/builder payload-class)
               (.client curator-framework)
               (.basePath base-path)
@@ -67,10 +67,8 @@
 
 (defn services
   "Returns the names of the services registered."
-  [service-discovery]
+  [^ServiceDiscovery service-discovery]
   (.queryForNames service-discovery))
-
-
 
 (defn random-strategy
   []
@@ -91,11 +89,11 @@
      {:pre [(some time-units [timeout-unit])]}
      (DownInstancePolicy. timeout (time-units timeout-unit) error-threshold)))
 
-(defn service-provider
+(defn ^ServiceProvider service-provider
   "Creates a service provider for a named service s."
-  [service-discovery s & {:keys [strategy down-instance-policy]
-                          :or   {strategy             (random-strategy)
-                                 down-instance-policy (down-instance-policy)}}]
+  [^ServiceDiscovery service-discovery s & {:keys [strategy down-instance-policy]
+                                            :or   {strategy             (random-strategy)
+                                                   down-instance-policy (down-instance-policy)}}]
   (-> (doto (.serviceProviderBuilder service-discovery)
         (.serviceName s)
         (.downInstancePolicy down-instance-policy)
@@ -105,7 +103,7 @@
 (defn service-cache
   "Creates a service cache (rather than reading ZooKeeper each time) for
    the service named s"
-  [service-discovery s]
+  [^ServiceDiscovery service-discovery s]
   (-> (.serviceCacheBuilder service-discovery)
       ( .name s)
       (.build)))
@@ -117,10 +115,10 @@
   [^ServiceProvider service-provider ^ServiceInstance instance]
   (.noteError service-provider instance))
 
-(defmulti instances (fn [x & args] (.getClass x)))
-(defmethod instances ServiceDiscovery [sd s] (.queryForInstances sd s))
-(defmethod instances ServiceCache [sc] (.getInstances sc))
+(defmulti instances (fn [^Object x & args] (.getClass x)))
+(defmethod instances ServiceDiscovery [^ServiceDiscovery sd s] (.queryForInstances sd s))
+(defmethod instances ServiceCache [^ServiceCache sc] (.getInstances sc))
 
-(defmulti instance (fn [x & args] (.getClass x)))
-(defmethod instance ServiceProvider [provider] (.getInstance provider))
+(defmulti instance (fn [^Object x & args] (.getClass x)))
+(defmethod instance ServiceProvider [^ServiceProvider provider] (.getInstance provider))
 (defmethod instance ServiceCache [cache ^ProviderStrategy strategy] (.getInstance strategy cache))
