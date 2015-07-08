@@ -9,12 +9,11 @@
   (ExponentialBackoffRetry. sleep-millis num-retries))
 
 (defn ^CuratorFramework curator-framework
-  [connect-string & {:keys [retry-policy connect-timeout-millis
-                            session-timeout-millis ensemble-provider namespace]
+  [connect-string & {:keys [retry-policy connect-timeout-millis session-timeout-millis ensemble-provider namespace]
                      :or   {retry-policy           (exponential-retry 1000 10)
                             connect-timeout-millis 500
                             session-timeout-millis (* 40 1000)
-                            ensemble-provider (FixedEnsembleProvider. connect-string)}}]
+                            ensemble-provider      (FixedEnsembleProvider. connect-string)}}]
   (-> (doto (CuratorFrameworkFactory/builder)
         (.ensembleProvider ensemble-provider)
         (.retryPolicy retry-policy)
