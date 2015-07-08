@@ -95,6 +95,31 @@ A (work-in-progress) dummy application is being produced that uses the library t
 (.close client)
 ```
 
+## Exhibitor Ensemble provider
+
+```clojure
+(ns myservice
+  (:require [curator.framework :refer (curator-framework)]
+            [curator.exhibitor :refer (exhibitor-ensemble-provider exhibitors)]))
+
+;; exhibitor host
+(def exhibitor-hosts ["exhibitor-1" "exhibitor-2" "exhibitor-3"])
+
+(def exhibitor-port 8080)
+(def backup-connection-string "localhost:2181")
+
+(def provider (exhibitor-ensemble-provider
+                (exhibitors exhibitor-hosts
+                            exhibitor-port
+                            backup-connection-string))
+
+(.pollForInitialEnsemble provider)
+
+;; now we create the curator-framework client
+(def client (curator-framework "" :ensemble-provider provider))
+(.start client)
+```
+
 ## Leadership Election
 Leadership elections can be useful when you need to have multiple instances of a service/process and one of the designated as the leader/master/coordinator etc.
 

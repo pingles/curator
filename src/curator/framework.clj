@@ -2,18 +2,21 @@
   (:import [org.apache.curator.retry ExponentialBackoffRetry]
            [org.apache.curator.framework CuratorFramework CuratorFrameworkFactory]
            [org.apache.curator.framework.imps CuratorFrameworkState]
+           [org.apache.curator.ensemble.fixed FixedEnsembleProvider]
            [java.util.concurrent TimeUnit]))
 
 (defn exponential-retry [sleep-millis num-retries]
   (ExponentialBackoffRetry. sleep-millis num-retries))
 
 (defn ^CuratorFramework curator-framework
-  [connect-string & {:keys [retry-policy connect-timeout-millis session-timeout-millis namespace]
+  [connect-string & {:keys [retry-policy connect-timeout-millis
+                            session-timeout-millis ensemble-provider namespace]
                      :or   {retry-policy           (exponential-retry 1000 10)
                             connect-timeout-millis 500
-                            session-timeout-millis (* 40 1000)}}]
+                            session-timeout-millis (* 40 1000)
+                            ensemble-provider (FixedEnsembleProvider. connect-string)}}]
   (-> (doto (CuratorFrameworkFactory/builder)
-        (.connectString connect-string)
+        (.ensembleProvider ensemble-provider)
         (.retryPolicy retry-policy)
         (.connectionTimeoutMs connect-timeout-millis)
         (.sessionTimeoutMs session-timeout-millis)
