@@ -28,7 +28,7 @@ A (work-in-progress) dummy application is being produced that uses the library t
 ```clojure
 (ns myservice
   (:require [curator.framework :refer (curator-framework)]
-            [curator.discovery :refer (service-discovery service-instance service-provider instance instances services note-error)]))
+            [curator.discovery :refer (service-discovery service-instance service-provider instance instances services note-error round-robin-strategy)]))
 
 ;; services (and their instances) are registered by name
 (def service-name "some-service")
