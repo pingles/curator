@@ -111,7 +111,7 @@ A (work-in-progress) dummy application is being produced that uses the library t
 (def provider (exhibitor-ensemble-provider
                 (exhibitors exhibitor-hosts
                             exhibitor-port
-                            backup-connection-string))
+                            backup-connection-string)))
 
 (.pollForInitialEnsemble provider)
 
