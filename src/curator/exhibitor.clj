@@ -4,7 +4,8 @@
             Exhibitors
             ExhibitorEnsembleProvider
             DefaultExhibitorRestClient
-            Exhibitors$BackupConnectionStringProvider]))
+            Exhibitors$BackupConnectionStringProvider]
+           (java.util List ArrayList)))
 
 (defn ^ExhibitorEnsembleProvider exhibitor-ensemble-provider
   [^Exhibitors exhibitors & {:keys [rest-client uri polling-ms retry-policy ]
@@ -20,7 +21,7 @@
       connection-string)))
 
 (defn ^Exhibitors exhibitors
-  [hosts port backup-connection-string]
-  (Exhibitors. (java.util.ArrayList. hosts)
+  [^List hosts port backup-connection-string]
+  (Exhibitors. (ArrayList. hosts)
                port
                (backup-connection-provider backup-connection-string)))
