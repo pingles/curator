@@ -28,7 +28,7 @@ A (work-in-progress) dummy application is being produced that uses the library t
 ```clojure
 (ns myservice
   (:require [curator.framework :refer (curator-framework)]
-            [curator.discovery :refer (service-discovery service-instance service-provider instance instances services note-error)]))
+            [curator.discovery :refer (service-discovery service-instance service-provider instance instances services note-error round-robin-strategy service-cache)]))
 
 ;; services (and their instances) are registered by name
 (def service-name "some-service")
@@ -36,7 +36,7 @@ A (work-in-progress) dummy application is being produced that uses the library t
 ;; create an instance of our service. we don't specify address
 ;; so it'll use a public address from our network interfaces.
 ;; payloads must be strings for now
-(def instance (service-instance service-name
+(def inst (service-instance service-name
                                 "{scheme}://{address}:{port}"
                                 1234
                                 :payload "testing 123"))
@@ -48,7 +48,7 @@ A (work-in-progress) dummy application is being produced that uses the library t
 
 ;; next we create our service discovery, which uses the client
 ;; in the background to register our service instance
-(def discovery (service-discovery client instance :base-path "/foo"))
+(def discovery (service-discovery client inst :base-path "/foo"))
 (.start discovery)
 
 ;; now we can see which services are registered
