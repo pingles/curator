@@ -1,7 +1,8 @@
 (ns curator.leader
   (:require [curator.framework :refer (time-units)])
-  (:import [org.apache.curator.framework.recipes.leader LeaderSelector LeaderSelectorListener CancelLeadershipException]
+  (:import [org.apache.curator.framework.recipes.leader LeaderSelector LeaderSelectorListener CancelLeadershipException Participant]
            [org.apache.curator.framework.state ConnectionState]
+           [org.apache.zookeeper KeeperException$NoNodeException]
            [java.util UUID]))
 
 (defn listener [became-leader-fn losing-leader-fn participant-id]
@@ -12,7 +13,7 @@
                 (= new-state ConnectionState/LOST))
         (try (losing-leader-fn curator-framework new-state participant-id)
              (catch Exception e
-               (throw (CancelLeadershipException. e)))
+               (throw (CancelLeadershipException. ^Throwable e)))
              (finally
                (throw (CancelLeadershipException.))))))))
 
@@ -49,3 +50,16 @@
 (defn participants
   [^LeaderSelector leader-selector]
   (.getParticipants leader-selector))
+
+(defn- ^Participant safe-get-leader
+  "Safely try to retrieve the leader.
+
+  - if a KeeperException$NoNodeException is caught because leadership hasn't started yet, return nil.
+  - if a dummy Participant is returned (because there is no leader elected), return nil."
+  [^LeaderSelector leader-selector]
+  (try
+    (let [^Participant candidate (.getLeader leader-selector)]
+      (when (.isLeader candidate)
+        candidate))
+    (catch KeeperException$NoNodeException e
+      nil)))
